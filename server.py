@@ -25,13 +25,34 @@ def connectdb():
 	return con
 
 #function to get results
+#NB: python returns None by default
 def returnDatabaseResults(sql, con):
+	all_patients = []
 	
-	#Create the cursor handler in the reader function
-	cursor = con.cursor()
-	cursor.execute(sql)                    #executes the querry on the database
-	results = cursor.fetchall()            #fetch the results 
-	return json.dumps(results)                         #return the results
+	#Create the cursor handler in the reader function	    
+	try:
+		cursor = con.cursor()
+		cursor.execute(sql)                    #executes the querry on the database
+		results = cursor.fetchall()            #fetch the results 
+
+		#I will iterate over each row to create a dictionary of each row (patient) here
+		for each in results:
+		      each_row = {}
+		      each_row['name'] = each[0]
+		      each_row['phone'] = each[1]
+		      each_row['email'] = each[2]
+		      each_row['address'] = each[3] 
+		      
+		      #I now append this row of patient entry to the list of all patients
+		      all_patients.append(each_row)
+		      #And go back for the next row
+		      
+		return json.dumps(all_patients)                         #return the results
+		      
+	except Exception as e:
+		print(e)
+	
+		      
 
 
 #conncect to the database
@@ -41,8 +62,12 @@ if conn is not None:
 	print ("database opened successfully")
 
 	result = returnDatabaseResults('select * from patient_info', con)
-	print(result, type(result)) 
-
+	if result is not None:
+		print(result, type(result))
+	else:
+		print('No data read')
+else:
+	print('Fail to establish connecton to database')
 
 # s = socket.socket()         # Create a socket object
 # host = socket.gethostname() # Get local machine name
