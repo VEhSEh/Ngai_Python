@@ -77,7 +77,7 @@ else:
 
 def service_request(client):
 	try:
-		data = client.recv(1024)
+		data = client.recv(1024)     #This is bad... It will only receive 1k byte and forget the rest
 		print(data)
 	except Exception as e:
 		print(e)
