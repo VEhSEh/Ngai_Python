@@ -69,21 +69,38 @@ if conn is not None:
 else:
 	print('Fail to establish connecton to database')
 
-# s = socket.socket()         # Create a socket object
-# host = socket.gethostname() # Get local machine name
-# port = 12345                # Reserve a port for your service.
-# s.bind((host, port))        # Bind to the port
+		      
+		      
+		      
+		      
+		      
 
-# s.listen(5)                 # Now wait for client connection.
-# while True:
-#    c, addr = s.accept()     # Establish connection with client.
-#    print ('Got connection from', addr)
-#    sql = c.recv(1024)   #receive statement to execute from client
-#    results = returnDatabaseResults(sql, cursor)    #execute querry and return the results
-#    for result in results:
-#    	c.send(result[0])
-#    	c.send(result[1])
-#    	c.send(result[2])
-#    	c.send(result[3])
-#    #c.send('Thank you for connecting')
-#    c.close()                # Close the connection
+def service_request(client):
+	try:
+		data = client.recv(1024)
+		print(data)
+	except Exception as e:
+		print(e)
+
+
+
+
+def receive_request():
+	sock = socket.socket() # this simple syntax creates by default tcp IPv4 socket object
+	sock.bind(('', 5555)) # The '' host makes it to listen on all posible addresses in the local machine
+	sock.listen('5') # Listen to 5 concurrent request
+	
+	try:
+		# We listen forever
+		while True:
+			#We accept a client that tries to connect
+			client, address = sock.accept()
+			
+			#We send the client to another routine to service the request (They are commonly called request handlers)
+			service_request(client)
+			
+	
+	except Exception as e:
+		print(e)
+	
+	sock.close()
