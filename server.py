@@ -97,7 +97,10 @@ def receive_request():
 			client, address = sock.accept()
 			
 			#We send the client to another routine to service the request (They are commonly called request handlers)
-			service_request(client)
+			results = service_request(client)
+		      	
+		      	#send results back to client
+		      	client.send(results.encode())
 			
 	
 	except Exception as e:
