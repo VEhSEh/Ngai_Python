@@ -25,10 +25,11 @@ host = '127.0.0.1'
 port = '5432'
 con = connectdb(database,user,password, host,port)
 print ("database opened successfully")
-result = returnDatabaseResults('select * from patient_info', 
 
-# create a cursor handler
-# cursor = con.cursor()
+#Create the cursor handler in the reader function
+result = returnDatabaseResults('select * from patient_info', con)
+print(result, type(result)) 
+
 
 # s = socket.socket()         # Create a socket object
 # host = socket.gethostname() # Get local machine name
