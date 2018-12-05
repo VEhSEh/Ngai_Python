@@ -3,6 +3,7 @@
 import socket               # Import socket module
 import psycopg2             # import python postgres module
 import json
+from threading import Thread
 
 #function to connect database
 def connectdb():
@@ -26,62 +27,56 @@ def connectdb():
 
 #function to get results
 #NB: python returns None by default
-def returnDatabaseResults(sql, con):
-	all_patients = []
-	
-	#Create the cursor handler in the reader function	    
-	try:
-		cursor = con.cursor()
-		cursor.execute(sql)                    #executes the querry on the database
-		results = cursor.fetchall()            #fetch the results 
+#Modified to call the connection method by itself
+def returnDatabaseResults(name):
+	con = connectdb()
+	if con is not None:
+		all_patients = []
 
-		#I will iterate over each row to create a dictionary of each row (patient) here
-		for each in results:
-		      each_row = {}
-		      each_row['name'] = each[0]
-		      each_row['phone'] = each[1]
-		      each_row['email'] = each[2]
-		      each_row['address'] = each[3] 
-		      
-		      #I now append this row of patient entry to the list of all patients
-		      all_patients.append(each_row)
-		      #And go back for the next row
-		      
-		return json.dumps(all_patients)                         #return the results
-		      
-	except Exception as e:
-		print(e)
-	
-		      
+		#Create the cursor handler in the reader function
+		try:
+			cursor = con.cursor()
+			cursor.execute('SELECT * FROM patien_if WHERE name=%s', (name,))                    #Querying from database using varibles
+			results = cursor.fetchall()            #fetch the results 
 
+			#I will iterate over each row to create a dictionary of each row (patient) here
+			for each in results:
+			      each_row = {}
+			      each_row['name'] = each[0]
+			      each_row['phone'] = each[1]
+			      each_row['email'] = each[2]
+			      each_row['address'] = each[3] 
 
-#conncect to the database
-con = connectdb()
-#Check if the connection object is not None
-if conn is not None:
-	print ("database opened successfully")
+			      #I now append this row of patient entry to the list of all patients
+			      all_patients.append(each_row)
+			      #And go back for the next row
 
-	result = returnDatabaseResults('select * from patient_info', con)
-	if result is not None:
-		print(result, type(result))
-	else:
-		print('No data read')
-else:
-	print('Fail to establish connecton to database')
+			return json.dumps(all_patients)                         #return the results
+
+		except Exception as e:
+			print(e)
 
 		      
 		      
-		      
-		      
-		      
+		     
 
 def service_request(client):
 	try:
-		data = client.recv(1024)     #This is bad... It will only receive 1k byte and forget the rest
-		print(data)
+		request_data = client.recv(1024)
+		
 	except Exception as e:
 		print(e)
-
+	#Here now we can do whatever we intend to do with the request data
+	#Suppose the data received is something like this {'type':'GET', 'data':'lizzy'}
+	if request_data['type'] == 'GET':
+		# We get the search keyword in the request_data of the client
+		name = request['name']
+		
+		# We can now call the reader function
+		result = returnDatabaseResults(name)
+		
+		#We now send the results back to the server
+		client.send(result.encode())
 
 
 
@@ -96,11 +91,10 @@ def receive_request():
 			#We accept a client that tries to connect
 			client, address = sock.accept()
 			
-			#We send the client to another routine to service the request (They are commonly called request handlers)
-			results = service_request(client)
-		      	
-		      	#send results back to client
-		      	client.send(results.encode())
+		      	req = Thread(target=service_request, args=(client,))
+		        req.start()
+		      
+		      	print("Going back to start listening for other request)
 			
 	
 	except Exception as e:
