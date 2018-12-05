@@ -5,12 +5,29 @@ import psycopg2             # import python postgres module
 import json
 
 #function to connect database
-def connectdb(database, user, password, host='127.0.0.1', port='5432'):
-	con = psycopg2.connect(database=database, user=user, password=password,host=host, port=port)
+def connectdb():
+	database = 'patientdb'
+	user = 'ngai'
+	password = 'ngai'
+	host = '127.0.0.1'
+	port = '5432'
+	
+	con = None
+	# Here it will try to connect to the DB
+	try:
+		con = psycopg2.connect(database=database, user=user, password=password,host=host, port=port)
+	
+	#if there's a connection problem, you handle it here
+	except Exception as e:
+		print(e)
+		print('Doing nothing with the problem found)
+		      
 	return con
 
 #function to get results
 def returnDatabaseResults(sql, con):
+	
+	#Create the cursor handler in the reader function
 	cursor = con.cursor()
 	cursor.execute(sql)                    #executes the querry on the database
 	results = cursor.fetchall()            #fetch the results 
@@ -18,17 +35,13 @@ def returnDatabaseResults(sql, con):
 
 
 #conncect to the database
-database = 'patientdb'
-user = 'ngai'
-password = 'ngai'
-host = '127.0.0.1'
-port = '5432'
-con = connectdb(database,user,password, host,port)
-print ("database opened successfully")
+con = connectdb()
+#Check if the connection object is not None
+if conn is not None:
+	print ("database opened successfully")
 
-#Create the cursor handler in the reader function
-result = returnDatabaseResults('select * from patient_info', con)
-print(result, type(result)) 
+	result = returnDatabaseResults('select * from patient_info', con)
+	print(result, type(result)) 
 
 
 # s = socket.socket()         # Create a socket object
